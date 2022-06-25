@@ -1,0 +1,47 @@
+name: usergex
+
+on:
+  push:
+    branches: [ main ]
+    paths-ignore: 'README.md'
+  workflow_dispatch:
+    
+env:
+  GitHubMail: "BleedingDevX97@Protonmail.Com"
+  GitHubName: "LinuxSupremacyX" 
+jobs:
+  build:
+    runs-on: ubuntu-20.04
+
+    steps:
+       - name: Checkout
+         uses: actions/checkout@main
+
+       - name: Set Git Configs & Secrets
+         run: |
+           git config --global user.email ${GitHubMail}
+           git config --global user.name ${GitHubName}
+           git config --global credential.helper store
+           echo "https://${GitHubName}:${{ secrets.GH_TOKEN1 }}@github.com" > ~/.git-credentials
+
+       - name: cloning repo
+         continue-on-error: true
+         run: |
+           git clone https://${GitHubName}:${{ secrets.GH_TOKEN1 }}@github.com/PrajjuS/USERGE-X userge
+       - name: Running Userge
+         timeout-minutes: 350
+         continue-on-error: true
+         run: |
+           cd userge
+           docker build . --rm --force-rm --compress --no-cache=true --pull --file Dockerfile -t userge-x
+           docker run --privileged --rm -i userge-x
+           
+       - name: Loop workflow
+         continue-on-error: true
+         run: |
+           git clone https://${{ secrets.GH_TOKEN2 }}@github.com/${GITHUB_REPOSITORY} loop
+           cd loop || exit 1
+           echo $(( RANDOM - ( RANDOM % RANDOM ) )) > looper.txt
+           git add looper.txt
+           git commit -m "Workflow : Loop at $(date -u +%D-%T%P)"
+           git push -q https://${{ secrets.GH_TOKEN2 }}@github.com/${GITHUB_REPOSITORY} HEAD:usergex
